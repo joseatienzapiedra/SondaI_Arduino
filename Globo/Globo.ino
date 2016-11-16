@@ -1,3 +1,4 @@
+//Prueba de actualizacion 1
 
 #include <max6675.h>
 #include <LiquidCrystal_I2C.h>

@@ -1,5 +1,4 @@
 
-
 #include <max6675.h>
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>

@@ -19,22 +19,48 @@
  * You should have received a copy of the GNU General Public License
  * along with PicaMesh-server.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#include <LiquidCrystal_I2C.h>
+//MISCELLANEOUS RELATED
 #include <Wire.h>
+unsigned long T_0=0, T=1000;
+
+//LCD1602I2C RELATED
+#include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 uint8_t degree[8]  = {0x8,0xf4,0x8,0x43,0x4,0x4,0x43,0x0}; // make a degree symbol for I2C LCD1602 Screen
 
-void setup() {
+//SI7021 RELATED
+#include <SI7021.h>
+SI7021 sensor;
+int Temp_SI7021, HR_SI7021;
+
+
+void setup()
+{
+  //LCD1602I2C RELATED
   lcd.begin();
   lcd.createChar(0, degree);
   lcd.backlight();
+  
+  //SI7021 RELATED
+  sensor.begin();
 }
 
-void loop() {
+void loop()
+{
+  T_0 = millis();
+  digitalWrite(13,LOW);
+  
+  //SI7021 RELATED
+  si7021_env data = sensor.getHumidityAndTemperature();
+  Temp_SI7021=data.celsiusHundredths/100;
+  HR_SI7021=data.humidityBasisPoints/100;
+
+  //LCD1602I2C RELATED
   lcd.clear();
   lcd.setCursor(0, 0);   // go to line #0
-  lcd.print("Text0");
+  lcd.print(Temp_SI7021); lcd.print((char)0);
   lcd.setCursor(0,1);    // go to line #1
-  lcd.print("Text1");
+  lcd.print(HR_SI7021); lcd.print("%");
+  
+  do {digitalWrite(13,HIGH);} while  ((millis() - T_0) < T); //COMPARE CURRENT TIME WITH LOOP INITIAL TIME
 }

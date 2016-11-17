@@ -1,3 +1,3 @@
 # SondaI_Arduino
 
-Esta es la prueba 1
+This is the code for a weather balloon probe. 

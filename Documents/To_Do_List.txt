@@ -8,7 +8,9 @@ HMC5883L              PENDING...              Magnet. Sensor, waiting for it to 
 MPU6050               PENDING...              A+G Sensor, waiting for it to arrive
 SI1141                PENDING...              UVI Sensor, have to order sensor and solder it
 SD Card               PENDING...
-Preassure Sensor?     ??                      ??
+SIM900                PENDING...              GSM, have to arrive... 
+BMP180                PENDING...              Preassure, have to order it
+GY-NEO6MV2            PENDING...              GPS, have to order it
 
 GET things:
 

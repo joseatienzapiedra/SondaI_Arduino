@@ -1,0 +1,17 @@
+PROGRAMMING
+
+MODULE                STATE                   COMENTARIES
+LCD1602               OK                      READY!
+SI7021                OK                      Check if can change from integer to better resolution data type
+MAX31855              PENDING...              Temp. Sensor, waiting for it to arrive
+HMC5883L              PENDING...              Magnet. Sensor, waiting for it to arrive
+MPU6050               PENDING...              A+G Sensor, waiting for it to arrive
+SI1141                PENDING...              UVI Sensor, have to order sensor and solder it
+SD Card               PENDING...
+Preassure Sensor?     ??                      ??
+
+GET things:
+
+-Preasure sensor        BMP180        http://www.ebay.es/itm/Barometric-Pressure-Altitude-Sensor-Module-GY-68-BMP180-I2C-Arduino-/172394563380?hash=item2823844734:g:7xEAAOSwLnBX5QGg
+-Light Indicator        Creo que tengo uno de puta madre, y esto lo escribo en español XD
+-GPS                    GY-NEO6MV2    http://www.ebay.es/itm/GY-NEO6MV2-new-NEO-6M-GPS-with-Flight-Control-EEPROM-MWC-APM2-5-large-antenna-/191992221486?hash=item2cb3a0cf2e:g:ajoAAOSwLF1X92Tm

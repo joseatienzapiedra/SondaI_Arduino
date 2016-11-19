@@ -24,6 +24,19 @@
 unsigned long T_0 = 0, T_sensors = 0, T_last_loop = 0, T = 1000;
 int x = 0;
 
+//0 FOR IGNORE, 1 TO PRINT ON SERIAL PORT
+bool SERIAL_NAMES = 0;
+bool CHECK_PRINT_ON_SERIAL = 0;
+bool SI7021_HR_ACTIVE = 1;
+bool SI7021_TEMP_ACTIVE = 1;
+bool BMP180_TEMP_ACTIVE = 1;
+bool BMP180_PRESSBASE_ACTIVE = 0;
+bool BMP180_PRESSCURR_ACTIVE = 0;
+bool BMP180_ALT_ACTIVE = 1;
+bool TIMES_ACTIVE = 0;
+bool FLAG_ACTIVE = 0;
+
+
 //SI7021 RELATED
 #include <SI7021.h>
 SI7021 SI7021_sensor;
@@ -40,11 +53,18 @@ void setup()
   Serial.begin(9600);
 
   //SENSORS CHECK
+    if (CHECK_PRINT_ON_SERIAL)
+  {
+    Serial.print("\n\n");
+  }
   SI7021_CHECK();
   BMP180_CHECK();
+    if (CHECK_PRINT_ON_SERIAL)
+  {
+    Serial.print("\n\n");
+  }
 
   //MISCELLANEOUS RELATED
-  Serial.print("\n\n");
   pinMode(13, OUTPUT);
   //BMP180RELATED
   PressBase_BMP180 = BMP180_Pressure_Temp();
@@ -66,7 +86,7 @@ void loop()
   T_sensors = millis() - T_sensors;
 
   //SERIAL RELATED
-  SERIAL_PRINT(1, 1, 1, 1, 1, 1, 1, 1);
+  SERIAL_PRINT();
 
   //MISCELLANEOUS RELATED
   T_last_loop = millis() - T_0;
@@ -75,43 +95,46 @@ void loop()
   } while  ((millis() - T_0) < T); //COMPARE CURRENT TIME WITH LOOP INITIAL TIME
 }
 
-void SERIAL_PRINT(bool SI7021_HR_ACTIVE, bool SI7021_TEMP_ACTIVE, bool BMP180_TEMP_ACTIVE, bool BMP180_PRESSBASE_ACTIVE, bool BMP180_PRESSCURR_ACTIVE, bool BMP180_ALT_ACTIVE, bool TIMES_ACTIVE, bool FLAG_ACTIVE)
+void SERIAL_PRINT()
 {
-  if (SI7021_HR_ACTIVE)
+  if (SERIAL_NAMES)
   {
-    Serial.print("SI7021 HR [%]\t");
-  }
-  if (SI7021_TEMP_ACTIVE)
-  {
-    Serial.print("SI7021 TEMP [ºC]\t");
-  }
-  if (BMP180_TEMP_ACTIVE)
-  {
-    Serial.print("BMP180 TEMP [ºC]\t");
-  }
-  if (BMP180_PRESSBASE_ACTIVE)
-  {
-    Serial.print("BMP PRESSBASE [Pa]\t");
-  }
-  if (BMP180_PRESSCURR_ACTIVE)
-  {
-    Serial.print("BMP180 PRESSCURR [Pa]\t");
-  }
-  if (BMP180_ALT_ACTIVE)
-  {
-    Serial.print("BMP180 ALT [m]\t");
-  }
-  if (TIMES_ACTIVE)
-  {
-    Serial.print("Time Sensors [ms]\tTime Last Loop [ms]\t");
-  }
-  if (FLAG_ACTIVE)
-  {
-    Serial.print("FLAG [0/1]\t");
-  }
-  Serial.print("\n");
-   //VARIABLES-------------------------------------------------------
     if (SI7021_HR_ACTIVE)
+    {
+      Serial.print("SI7021 HR [%]\t");
+    }
+    if (SI7021_TEMP_ACTIVE)
+    {
+      Serial.print("SI7021 TEMP [ºC]\t");
+    }
+    if (BMP180_TEMP_ACTIVE)
+    {
+      Serial.print("BMP180 TEMP [ºC]\t");
+    }
+    if (BMP180_PRESSBASE_ACTIVE)
+    {
+      Serial.print("BMP PRESSBASE [Pa]\t");
+    }
+    if (BMP180_PRESSCURR_ACTIVE)
+    {
+      Serial.print("BMP180 PRESSCURR [Pa]\t");
+    }
+    if (BMP180_ALT_ACTIVE)
+    {
+      Serial.print("BMP180 ALT [m]\t");
+    }
+    if (TIMES_ACTIVE)
+    {
+      Serial.print("Time Sensors [ms]\tTime Last Loop [ms]\t");
+    }
+    if (FLAG_ACTIVE)
+    {
+      Serial.print("FLAG [0/1]\t");
+    }
+    Serial.print("\n");
+  }
+  //VARIABLES-------------------------------------------------------
+  if (SI7021_HR_ACTIVE)
   {
     Serial.print(HR_SI7021);
     Serial.print("\t\t");
@@ -159,11 +182,17 @@ void SI7021_CHECK()
 {
   if (SI7021_sensor.begin())
   {
-    Serial.write("SI7021 OK\t");
+    if (CHECK_PRINT_ON_SERIAL)
+    {
+      Serial.write("SI7021 OK\t");
+    }
   }
   else
   {
-    Serial.write("SI7021 ERROR\t");
+    if (CHECK_PRINT_ON_SERIAL)
+    {
+      Serial.write("SI7021 ERROR\t");
+    }
   }
 }
 
@@ -171,11 +200,17 @@ void BMP180_CHECK()
 {
   if (BMP180_sensor.begin())
   {
-    Serial.write("BMP180 OK\t");
+    if (CHECK_PRINT_ON_SERIAL)
+    {
+      Serial.write("BMP180 OK\t");
+    }
   }
   else
   {
-    Serial.write("BMP180 ERROR\t");
+    if (CHECK_PRINT_ON_SERIAL)
+    {
+      Serial.write("BMP180 ERROR\t");
+    }
   }
 }
 

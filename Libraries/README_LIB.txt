@@ -3,10 +3,12 @@
 DISPOSITIVOS:
 
 FUNCIÓN         MODELO              COMENTARIO                                                        VCC	URL
+HR+Temp		SI7021		    Sensor HR y Temp						      3.3V	https://github.com/jlblancoc/SI7021
+Pres+Alt+Temp	BMP180		    Sensor Pres y Temp, calcula altitud				      3.3v	https://github.com/jarzebski/Arduino-DS3231
 Brújula         HMC5883L            Medidor de campos magnéticos a 3 ejes.                            3.3V	https://github.com/jarzebski/Arduino-HMC5883L
 Acel+Giro       MPU-6050            6 grados de libertad en total.                                    3.3V	https://github.com/jarzebski/Arduino-MPU6050
 Termopar-K      MAX31855            Tipo de termopar configurable. Hasta -200 grados                  3.3V	https://github.com/adafruit/Adafruit-MAX31855-library
-UVI             SI1141              Breakout diseñado por mi. Mide indice de radiación ultravioleta.  3.3V	https://github.com/jlblancoc/SI7021
+UVI             SI1141              Breakout diseñado por mi. Mide indice de radiación ultravioleta.  3.3V	
 CÁMARAS                             Cuando mi padre me las traiga lo pongo
 Pantalla        LCD1602I2C          Solo las utilizamos para Debug                                      5V	https://github.com/fdebrabander/Arduino-LiquidCrystal-I2C-library
 Lector SD	Genérico	    No necesita libreria. Tutoriales en [1]			      3.3v

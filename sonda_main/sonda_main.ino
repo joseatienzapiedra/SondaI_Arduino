@@ -19,23 +19,17 @@
    You should have received a copy of the GNU General Public License
    along with PicaMesh-server.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 //MISCELLANEOUS RELATED
 #include <Wire.h>
 unsigned long T_0 = 0, T_sensors = 0, T_last_loop = 0, T = 1000;
-int x = 0;
 
-//0 FOR IGNORE, 1 TO PRINT ON SERIAL PORT
-bool SERIAL_NAMES = 0;
-bool CHECK_PRINT_ON_SERIAL = 0;
-bool SI7021_HR_ACTIVE = 1;
-bool SI7021_TEMP_ACTIVE = 1;
-bool BMP180_TEMP_ACTIVE = 1;
-bool BMP180_PRESSBASE_ACTIVE = 0;
-bool BMP180_PRESSCURR_ACTIVE = 0;
-bool BMP180_ALT_ACTIVE = 1;
-bool TIMES_ACTIVE = 0;
-bool FLAG_ACTIVE = 0;
+//SD RELATED
+#include <SD.h>
+File myfile;
+String header="SI7021 HR [%]\tSI7021 TEMP [ºC]\tBMP180 TEMP [ºC]\tBMP PRESSBASE [Pa]\tBMP180 PRESSCURR [Pa]\tBMP180 ALT [m]\tTime Sensors [ms]\tTime Last Loop [ms]\tFLAG [0/1]\t\n";
 
+int x = 0, i = 0;
 
 //SI7021 RELATED
 #include <SI7021.h>
@@ -53,19 +47,19 @@ void setup()
   Serial.begin(9600);
 
   //SENSORS CHECK
-    if (CHECK_PRINT_ON_SERIAL)
-  {
-    Serial.print("\n\n");
-  }
+  Serial.print("\n\n");
+  SD_CHECK();
   SI7021_CHECK();
   BMP180_CHECK();
-    if (CHECK_PRINT_ON_SERIAL)
-  {
-    Serial.print("\n\n");
-  }
+  Serial.print("\n\n");
+
+  //PRINT HEADER RELATED
+  SERIAL_PRINT_HEADER();
+  SD_PRINT_HEADER();
 
   //MISCELLANEOUS RELATED
   pinMode(13, OUTPUT);
+
   //BMP180RELATED
   PressBase_BMP180 = BMP180_Pressure_Temp();
 }
@@ -76,123 +70,125 @@ void loop()
   T_0 = millis();
   x = !x;
   digitalWrite(13, LOW);
-  T_sensors = millis();
 
   //SENSORS MEASURE
+  T_sensors = millis();
   SI7021_MEASURE();
   BMP180_MEASURE();
-
-  //MISCELLANEA RELATED
   T_sensors = millis() - T_sensors;
-
+  
   //SERIAL RELATED
-  SERIAL_PRINT();
+  SERIAL_PRINT_DATA();
+
+  //SD RELATED
+  if (i <= 10)
+  {
+    SD_PRINT_DATA();
+  }
+  else if (i==10)
+  {
+    myfile.close();
+    Serial.print("\n\nSD ACABADA!!!!!!!!!\n\n");
+  }
+  i = i + 1;
 
   //MISCELLANEOUS RELATED
   T_last_loop = millis() - T_0;
-  do {
-    digitalWrite(13, HIGH);
-  } while  ((millis() - T_0) < T); //COMPARE CURRENT TIME WITH LOOP INITIAL TIME
+  do {digitalWrite(13, HIGH);} while  ((millis() - T_0) < T); //COMPARE CURRENT TIME WITH LOOP INITIAL TIME
+}
+//_______________________________________________________________________________________________________________________________________________________________________________
+
+void SERIAL_PRINT_HEADER()
+{
+  Serial.print(header);
 }
 
-void SERIAL_PRINT()
+void SD_PRINT_HEADER()
 {
-  if (SERIAL_NAMES)
+  if (myfile)
   {
-    if (SI7021_HR_ACTIVE)
-    {
-      Serial.print("SI7021 HR [%]\t");
-    }
-    if (SI7021_TEMP_ACTIVE)
-    {
-      Serial.print("SI7021 TEMP [ºC]\t");
-    }
-    if (BMP180_TEMP_ACTIVE)
-    {
-      Serial.print("BMP180 TEMP [ºC]\t");
-    }
-    if (BMP180_PRESSBASE_ACTIVE)
-    {
-      Serial.print("BMP PRESSBASE [Pa]\t");
-    }
-    if (BMP180_PRESSCURR_ACTIVE)
-    {
-      Serial.print("BMP180 PRESSCURR [Pa]\t");
-    }
-    if (BMP180_ALT_ACTIVE)
-    {
-      Serial.print("BMP180 ALT [m]\t");
-    }
-    if (TIMES_ACTIVE)
-    {
-      Serial.print("Time Sensors [ms]\tTime Last Loop [ms]\t");
-    }
-    if (FLAG_ACTIVE)
-    {
-      Serial.print("FLAG [0/1]\t");
-    }
-    Serial.print("\n");
+    myfile.print(header);
+    myfile.println(); //HAY QUE PROBARA HACERLO EN UNA LINEA CON PRINTLN
   }
-  //VARIABLES-------------------------------------------------------
-  if (SI7021_HR_ACTIVE)
+  else
   {
-    Serial.print(HR_SI7021);
-    Serial.print("\t\t");
+    Serial.print("\n*****FILE ERROR*****\n");
   }
-  if (SI7021_TEMP_ACTIVE)
-  {
-    Serial.print(Temp_SI7021);
-    Serial.print("\t\t\t");
-  }
-  if (BMP180_TEMP_ACTIVE)
-  {
-    Serial.print(Temp_BMP180);
-    Serial.print("\t\t\t");
-  }
-  if (BMP180_PRESSBASE_ACTIVE)
-  {
-    Serial.print(PressBase_BMP180);
-    Serial.print("\t\t\t");
-  }
-  if (BMP180_PRESSCURR_ACTIVE)
-  {
-    Serial.print(PressCurr_BMP180);
-    Serial.print("\t\t\t");
-  }
-  if (BMP180_ALT_ACTIVE)
-  {
-    Serial.print(Alt_BMP180);
-    Serial.print("\t\t");
-  }
-  if (TIMES_ACTIVE)
-  {
-    Serial.print(T_sensors);
-    Serial.print("\t\t\t");
-    Serial.print(T_last_loop);
-    Serial.print("\t\t\t");
-  }
-  if (FLAG_ACTIVE)
-  {
-    Serial.print(x);
-  }
+}
+
+void SERIAL_PRINT_DATA()
+{
+  Serial.print(HR_SI7021);
+  Serial.print("\t\t");
+  Serial.print(Temp_SI7021);
+  Serial.print("\t\t\t");
+  Serial.print(Temp_BMP180);
+  Serial.print("\t\t\t");
+  Serial.print(PressBase_BMP180 * 100.000);
+  Serial.print("\t\t");
+  Serial.print(PressCurr_BMP180 * 100.000);
+  Serial.print("\t\t");
+  Serial.print(Alt_BMP180);
+  Serial.print("\t\t");
+  Serial.print(T_sensors);
+  Serial.print("\t\t\t");
+  Serial.print(T_last_loop);
+  Serial.print("\t\t\t");
+  Serial.print(x);
   Serial.print("\n");
+}
+
+void SD_PRINT_DATA()
+{
+  if (myfile)
+  {
+    myfile.print(HR_SI7021);
+    myfile.print("\t\t");
+    myfile.print(Temp_SI7021);
+    myfile.print("\t\t\t");
+    myfile.print(Temp_BMP180);
+    myfile.print("\t\t\t");
+    myfile.print(PressBase_BMP180 * 100.000);
+    myfile.print("\t\t");
+    myfile.print(PressCurr_BMP180 * 100.000);
+    myfile.print("\t\t");
+    myfile.print(Alt_BMP180);
+    myfile.print("\t\t");
+    myfile.print(T_sensors);
+    myfile.print("\t\t\t");
+    myfile.print(T_last_loop);
+    myfile.print("\t\t\t");
+    myfile.print(x);
+    myfile.println();
+  }
+  else
+  {
+    Serial.println("\n*****FILE ERROR*****\n");
+  }
+}
+
+void SD_CHECK()
+{
+  if (!SD.begin(4))
+  {
+    Serial.write("SD ERROR\t");
+  }
+  else
+  {
+    Serial.write("SD OK\t");
+    myfile = SD.open("textFile.txt", FILE_WRITE);
+  }
 }
 
 void SI7021_CHECK()
 {
   if (SI7021_sensor.begin())
   {
-    if (CHECK_PRINT_ON_SERIAL)
-    {
-      Serial.write("SI7021 OK\t");
-    }
+    Serial.write("SI7021 OK\t");
   }
   else
   {
-    if (CHECK_PRINT_ON_SERIAL)
-    {
-      Serial.write("SI7021 ERROR\t");
-    }
+    Serial.write("SI7021 ERROR\t");
   }
 }
 
@@ -200,17 +196,11 @@ void BMP180_CHECK()
 {
   if (BMP180_sensor.begin())
   {
-    if (CHECK_PRINT_ON_SERIAL)
-    {
-      Serial.write("BMP180 OK\t");
-    }
+    Serial.write("BMP180 OK\t");
   }
   else
   {
-    if (CHECK_PRINT_ON_SERIAL)
-    {
-      Serial.write("BMP180 ERROR\t");
-    }
+    Serial.write("BMP180 ERROR\t");
   }
 }
 

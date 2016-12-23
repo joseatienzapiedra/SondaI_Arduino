@@ -1,4 +1,4 @@
-/**
+/*
    Copyright (c) 2016 Jose Atienza  <joseatienzapiedra@gmail.com> http://www.joseatienza.com/
                       Juan J. Pardo <dejpardo@gmail.com>
    All rights reserved.
@@ -22,14 +22,16 @@
 
 //MISCELLANEOUS RELATED
 #include <Wire.h>
-unsigned long T_0 = 0, T_sensors = 0, T_last_loop = 0, T = 1000;
+extern "C" // FROM WIRE LIBRARY TO SCAN I2C
+{
+#include "utility/twi.h"
+}
+unsigned long T_0 = 0;
 
 //SD RELATED
 #include <SD.h>
 File myfile;
-String header="SI7021 HR [%]\tSI7021 TEMP [ºC]\tBMP180 TEMP [ºC]\tBMP PRESSBASE [Pa]\tBMP180 PRESSCURR [Pa]\tBMP180 ALT [m]\tTime Sensors [ms]\tTime Last Loop [ms]\tFLAG [0/1]\t\n";
-
-int x = 0, i = 0;
+String FILE_NAME;
 
 //SI7021 RELATED
 #include <SI7021.h>
@@ -41,6 +43,16 @@ float Temp_SI7021, HR_SI7021;
 SFE_BMP180 BMP180_sensor;
 double Temp_BMP180, PressBase_BMP180, PressCurr_BMP180, Alt_BMP180;
 
+//DS3231 RELATED
+#include <DS3231.h>
+DS3231  rtc(SDA, SCL);
+
+//MPU6050 RELATED
+#include <MPU6050.h>
+MPU6050 MPU6050_sensor;
+Vector Acel_MPU6050;
+Vector Giro_MPU6050;
+
 void setup()
 {
   //SERIAL RELATED
@@ -51,11 +63,9 @@ void setup()
   SD_CHECK();
   SI7021_CHECK();
   BMP180_CHECK();
+  rtc.begin();
+  MPU6050_CHECK();
   Serial.print("\n\n");
-
-  //PRINT HEADER RELATED
-  SERIAL_PRINT_HEADER();
-  SD_PRINT_HEADER();
 
   //MISCELLANEOUS RELATED
   pinMode(13, OUTPUT);
@@ -68,98 +78,124 @@ void loop()
 {
   //MISCELLANEOUS RELATED
   T_0 = millis();
-  x = !x;
+
+  //MISCELLANEOUS RELATED
+  digitalWrite(13, HIGH);
+  delay(100);
   digitalWrite(13, LOW);
 
   //SENSORS MEASURE
-  T_sensors = millis();
   SI7021_MEASURE();
   BMP180_MEASURE();
-  T_sensors = millis() - T_sensors;
-  
-  //SERIAL RELATED
-  SERIAL_PRINT_DATA();
+  MPU6050_MEASURE();
 
   //SD RELATED
-  if (i <= 10)
-  {
-    SD_PRINT_DATA();
-  }
-  else if (i==10)
-  {
-    myfile.close();
-    Serial.print("\n\nSD ACABADA!!!!!!!!!\n\n");
-  }
-  i = i + 1;
+  SD_PRINT_DATA();
 
-  //MISCELLANEOUS RELATED
-  T_last_loop = millis() - T_0;
-  do {digitalWrite(13, HIGH);} while  ((millis() - T_0) < T); //COMPARE CURRENT TIME WITH LOOP INITIAL TIME
+  do {} while  ((millis() - T_0) < 1000); //COMPARE CURRENT TIME WITH LOOP INITIAL TIME
 }
 //_______________________________________________________________________________________________________________________________________________________________________________
 
-void SERIAL_PRINT_HEADER()
-{
-  Serial.print(header);
-}
-
-void SD_PRINT_HEADER()
-{
-  if (myfile)
-  {
-    myfile.print(header);
-    myfile.println(); //HAY QUE PROBARA HACERLO EN UNA LINEA CON PRINTLN
-  }
-  else
-  {
-    Serial.print("\n*****FILE ERROR*****\n");
-  }
-}
-
-void SERIAL_PRINT_DATA()
-{
-  Serial.print(HR_SI7021);
-  Serial.print("\t\t");
-  Serial.print(Temp_SI7021);
-  Serial.print("\t\t\t");
-  Serial.print(Temp_BMP180);
-  Serial.print("\t\t\t");
-  Serial.print(PressBase_BMP180 * 100.000);
-  Serial.print("\t\t");
-  Serial.print(PressCurr_BMP180 * 100.000);
-  Serial.print("\t\t");
-  Serial.print(Alt_BMP180);
-  Serial.print("\t\t");
-  Serial.print(T_sensors);
-  Serial.print("\t\t\t");
-  Serial.print(T_last_loop);
-  Serial.print("\t\t\t");
-  Serial.print(x);
-  Serial.print("\n");
-}
-
 void SD_PRINT_DATA()
 {
-  if (myfile)
+  Wire.beginTransmission(87);
+    if (0 == Wire.endTransmission())
+    {
+      Wire.beginTransmission(104);
+      if (0 == Wire.endTransmission())
+      {
+        FILE_NAME = rtc.getDateStr();
+        myfile = SD.open(FILE_NAME.substring(6, 10) + FILE_NAME.substring(3, 5) + FILE_NAME.substring(0, 2) + ".TXT", FILE_WRITE);
+      }
+    }
+    else
+    {
+     myfile = SD.open("RTC_FAIL.TXT", FILE_WRITE);
+ 
+    }
+   if (myfile)
   {
+    Wire.beginTransmission(87);
+    if (0 == Wire.endTransmission())
+    {
+      Wire.beginTransmission(104);
+      if (0 == Wire.endTransmission())
+      {
+        myfile.print( rtc.getTimeStr());
+      }
+    }
+    else
+    {
+      myfile.print("RTC FAIL");
+    }
+    myfile.print("\t");
     myfile.print(HR_SI7021);
-    myfile.print("\t\t");
+    myfile.print("\t");
     myfile.print(Temp_SI7021);
-    myfile.print("\t\t\t");
+    myfile.print("\t");
     myfile.print(Temp_BMP180);
-    myfile.print("\t\t\t");
+    myfile.print("\t");
     myfile.print(PressBase_BMP180 * 100.000);
-    myfile.print("\t\t");
+    myfile.print("\t");
     myfile.print(PressCurr_BMP180 * 100.000);
-    myfile.print("\t\t");
+    myfile.print("\t");
     myfile.print(Alt_BMP180);
-    myfile.print("\t\t");
-    myfile.print(T_sensors);
-    myfile.print("\t\t\t");
-    myfile.print(T_last_loop);
-    myfile.print("\t\t\t");
-    myfile.print(x);
+    myfile.print("\t");
+    myfile.print(Acel_MPU6050.XAxis);
+    myfile.print("\t");
+    myfile.print(Acel_MPU6050.YAxis);
+    myfile.print("\t");
+    myfile.print(Acel_MPU6050.ZAxis);
+    myfile.print("\t");
+    myfile.print(Giro_MPU6050.XAxis);
+    myfile.print("\t");
+    myfile.print(Giro_MPU6050.YAxis);
+    myfile.print("\t");
+    myfile.print(Giro_MPU6050.ZAxis);
     myfile.println();
+    myfile.close();
+
+    //PRINT SERIAL
+
+    Wire.beginTransmission(87);
+    if (0 == Wire.endTransmission())
+    {
+      Wire.beginTransmission(104);
+      if (0 == Wire.endTransmission())
+      {
+        Serial.print( rtc.getTimeStr());
+      }
+    }
+    else
+    {
+      Serial.print("RTC FAIL");
+    }
+    Serial.print("\t");
+    Serial.print(HR_SI7021);
+    Serial.print("\t");
+    Serial.print(Temp_SI7021);
+    Serial.print("\t");
+    Serial.print(Temp_BMP180);
+    Serial.print("\t");
+    Serial.print(PressBase_BMP180 * 100.000);
+    Serial.print("\t");
+    Serial.print(PressCurr_BMP180 * 100.000);
+    Serial.print("\t");
+    Serial.print(Alt_BMP180);
+    Serial.print("\t");
+    Serial.print(Acel_MPU6050.XAxis);
+    Serial.print("\t");
+    Serial.print(Acel_MPU6050.YAxis);
+    Serial.print("\t");
+    Serial.print(Acel_MPU6050.ZAxis);
+    Serial.print("\t");
+    Serial.print(Giro_MPU6050.XAxis);
+    Serial.print("\t");
+    Serial.print(Giro_MPU6050.YAxis);
+    Serial.print("\t");
+    Serial.print(Giro_MPU6050.ZAxis);
+    Serial.println();
+
   }
   else
   {
@@ -176,7 +212,6 @@ void SD_CHECK()
   else
   {
     Serial.write("SD OK\t");
-    myfile = SD.open("textFile.txt", FILE_WRITE);
   }
 }
 
@@ -204,17 +239,39 @@ void BMP180_CHECK()
   }
 }
 
+void MPU6050_CHECK()
+{
+  if (MPU6050_sensor.begin(MPU6050_SCALE_250DPS, MPU6050_RANGE_2G, 105)) //IMPORTANT 105 REFERS TO CUSTOM ADDRESS
+  {
+    MPU6050_sensor.calibrateGyro();
+    MPU6050_sensor.setThreshold(3);
+    Serial.write("MPU6050 OK\t");
+  }
+  else
+  {
+    Serial.write("MPU6050 ERROR\t");
+  }
+}
+
 void SI7021_MEASURE()
 {
-  si7021_env data = SI7021_sensor.getHumidityAndTemperature();
-  Temp_SI7021 = data.celsiusHundredths / 100.00;
-  HR_SI7021 = data.humidityBasisPoints / 100.00;
+  Wire.beginTransmission(64);
+  if (0 == Wire.endTransmission())
+  {
+    si7021_env data = SI7021_sensor.getHumidityAndTemperature();
+    Temp_SI7021 = data.celsiusHundredths / 100.00;
+    HR_SI7021 = data.humidityBasisPoints / 100.00;
+  }
 }
 
 void BMP180_MEASURE()
 {
-  PressCurr_BMP180 = BMP180_Pressure_Temp();
-  Alt_BMP180 = BMP180_sensor.altitude(PressCurr_BMP180, PressBase_BMP180);
+  Wire.beginTransmission(119);
+  if (0 == Wire.endTransmission())
+  {
+    PressCurr_BMP180 = BMP180_Pressure_Temp();
+    Alt_BMP180 = BMP180_sensor.altitude(PressCurr_BMP180, PressBase_BMP180);
+  }
 }
 
 double BMP180_Pressure_Temp()
@@ -240,3 +297,14 @@ double BMP180_Pressure_Temp()
     }
   }
 }
+
+void MPU6050_MEASURE()
+{
+  Wire.beginTransmission(105);
+  if (0 == Wire.endTransmission())
+  {
+    Acel_MPU6050 = MPU6050_sensor.readNormalizeAccel();
+    Giro_MPU6050 = MPU6050_sensor.readNormalizeGyro();
+  }
+}
+

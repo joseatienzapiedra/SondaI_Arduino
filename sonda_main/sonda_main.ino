@@ -121,13 +121,13 @@ void SD_PRINT_DATA()
       myfile.print("*");
     };
     myfile.print("\t");
-    myfile.print(PressBase_BMP180 * 100.000);
+    myfile.print(PressBase_BMP180 * 100.00f);
     if (!BMP180_STATE)
     {
       myfile.print("*");
     };
     myfile.print("\t");
-    myfile.print(PressCurr_BMP180 * 100.000);
+    myfile.print(PressCurr_BMP180 * 100.00f);
     if (!BMP180_STATE)
     {
       myfile.print("*");
@@ -340,8 +340,8 @@ void SI7021_MEASURE()
   if (0 == Wire.endTransmission())
   {
     si7021_env data = SI7021_sensor.getHumidityAndTemperature();
-    Temp_SI7021 = data.celsiusHundredths / 100.00;
-    HR_SI7021 = data.humidityBasisPoints / 100.00;
+    Temp_SI7021 = data.celsiusHundredths / 100.00f;
+    HR_SI7021 = data.humidityBasisPoints / 100.00f;
     SI7021_STATE = 1;
   }
   else

@@ -33,11 +33,13 @@ String FILE_NAME;
 #include <SI7021.h>
 SI7021 SI7021_sensor;
 float Temp_SI7021, HR_SI7021;
+bool SI7021_STATE;
 
 //BMP180 RELATED
 #include <SFE_BMP180.h>
 SFE_BMP180 BMP180_sensor;
 double Temp_BMP180, PressBase_BMP180, PressCurr_BMP180, Alt_BMP180;
+bool BMP180_STATE;
 
 //DS3231 RELATED
 #include <DS3231.h>
@@ -51,6 +53,7 @@ int Hour, Minute, Second;
 MPU6050 MPU6050_sensor;
 Vector Acel_MPU6050;
 Vector Giro_MPU6050;
+bool MPU6050_STATE;
 
 void setup()
 {
@@ -101,58 +104,154 @@ void SD_PRINT_DATA()
     myfile.print(Time_DS3231);
     myfile.print("\t");
     myfile.print(HR_SI7021);
+    if (!SI7021_STATE)
+    {
+      myfile.print("*");
+    };
     myfile.print("\t");
     myfile.print(Temp_SI7021);
+    if (!SI7021_STATE)
+    {
+      myfile.print("*");
+    };
     myfile.print("\t");
     myfile.print(Temp_BMP180);
+    if (!BMP180_STATE)
+    {
+      myfile.print("*");
+    };
     myfile.print("\t");
     myfile.print(PressBase_BMP180 * 100.000);
+    if (!BMP180_STATE)
+    {
+      myfile.print("*");
+    };
     myfile.print("\t");
     myfile.print(PressCurr_BMP180 * 100.000);
+    if (!BMP180_STATE)
+    {
+      myfile.print("*");
+    };
     myfile.print("\t");
     myfile.print(Alt_BMP180);
+    if (!BMP180_STATE)
+    {
+      myfile.print("*");
+    };
     myfile.print("\t");
     myfile.print(Acel_MPU6050.XAxis);
+    if (!MPU6050_STATE)
+    {
+      myfile.print("*");
+    };
     myfile.print("\t");
     myfile.print(Acel_MPU6050.YAxis);
+    if (!MPU6050_STATE)
+    {
+      myfile.print("*");
+    };
     myfile.print("\t");
     myfile.print(Acel_MPU6050.ZAxis);
+    if (!MPU6050_STATE)
+    {
+      myfile.print("*");
+    };
     myfile.print("\t");
     myfile.print(Giro_MPU6050.XAxis);
+    if (!MPU6050_STATE)
+    {
+      myfile.print("*");
+    };
     myfile.print("\t");
     myfile.print(Giro_MPU6050.YAxis);
+    if (!MPU6050_STATE)
+    {
+      myfile.print("*");
+    };
     myfile.print("\t");
     myfile.print(Giro_MPU6050.ZAxis);
+    if (!MPU6050_STATE)
+    {
+      myfile.print("*");
+    };
     myfile.println();
     myfile.close();
 
     //PRINT SERIAL
 
-    Serial.print(Time_DS3231);
+        Serial.print(Time_DS3231);
     Serial.print("\t");
     Serial.print(HR_SI7021);
+    if (!SI7021_STATE)
+    {
+      Serial.print("*");
+    };
     Serial.print("\t");
     Serial.print(Temp_SI7021);
+    if (!SI7021_STATE)
+    {
+      Serial.print("*");
+    };
     Serial.print("\t");
     Serial.print(Temp_BMP180);
+    if (!BMP180_STATE)
+    {
+      Serial.print("*");
+    };
     Serial.print("\t");
     Serial.print(PressBase_BMP180 * 100.000);
+    if (!BMP180_STATE)
+    {
+      Serial.print("*");
+    };
     Serial.print("\t");
     Serial.print(PressCurr_BMP180 * 100.000);
+    if (!BMP180_STATE)
+    {
+      Serial.print("*");
+    };
     Serial.print("\t");
     Serial.print(Alt_BMP180);
+    if (!BMP180_STATE)
+    {
+      Serial.print("*");
+    };
     Serial.print("\t");
     Serial.print(Acel_MPU6050.XAxis);
+    if (!MPU6050_STATE)
+    {
+      Serial.print("*");
+    };
     Serial.print("\t");
     Serial.print(Acel_MPU6050.YAxis);
+    if (!MPU6050_STATE)
+    {
+      Serial.print("*");
+    };
     Serial.print("\t");
     Serial.print(Acel_MPU6050.ZAxis);
+    if (!MPU6050_STATE)
+    {
+      Serial.print("*");
+    };
     Serial.print("\t");
     Serial.print(Giro_MPU6050.XAxis);
+    if (!MPU6050_STATE)
+    {
+      Serial.print("*");
+    };
     Serial.print("\t");
     Serial.print(Giro_MPU6050.YAxis);
+    if (!MPU6050_STATE)
+    {
+      Serial.print("*");
+    };
     Serial.print("\t");
     Serial.print(Giro_MPU6050.ZAxis);
+    if (!MPU6050_STATE)
+    {
+      Serial.print("*");
+    };
     Serial.println();
 
   }
@@ -243,6 +342,11 @@ void SI7021_MEASURE()
     si7021_env data = SI7021_sensor.getHumidityAndTemperature();
     Temp_SI7021 = data.celsiusHundredths / 100.00;
     HR_SI7021 = data.humidityBasisPoints / 100.00;
+    SI7021_STATE = 1;
+  }
+  else
+  {
+    SI7021_STATE = 0;
   }
 }
 
@@ -253,6 +357,11 @@ void BMP180_MEASURE()
   {
     PressCurr_BMP180 = BMP180_Pressure_Temp();
     Alt_BMP180 = BMP180_sensor.altitude(PressCurr_BMP180, PressBase_BMP180);
+    BMP180_STATE = 1;
+  }
+  else
+  {
+    BMP180_STATE = 0;
   }
 }
 
@@ -287,6 +396,11 @@ void MPU6050_MEASURE()
   {
     Acel_MPU6050 = MPU6050_sensor.readNormalizeAccel();
     Giro_MPU6050 = MPU6050_sensor.readNormalizeGyro();
+    MPU6050_STATE = 1;
+  }
+  else
+  {
+    MPU6050_STATE = 0;
   }
 }
 
@@ -347,6 +461,7 @@ void RTC_FAIL_INFER_TIME()
       {
         Hour = 0;
         myfile.print("\n\nNEW DAY!\n\n");
+        Serial.print("\n\nNEW DAY!\n\n");
       }
     }
   }

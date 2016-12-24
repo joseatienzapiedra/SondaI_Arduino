@@ -22,10 +22,6 @@
 
 //MISCELLANEOUS RELATED
 #include <Wire.h>
-extern "C" // FROM WIRE LIBRARY TO SCAN I2C
-{
-#include "utility/twi.h"
-}
 unsigned long T_0 = 0;
 
 //SD RELATED
@@ -46,6 +42,9 @@ double Temp_BMP180, PressBase_BMP180, PressCurr_BMP180, Alt_BMP180;
 //DS3231 RELATED
 #include <DS3231.h>
 DS3231  rtc(SDA, SCL);
+String Date_DS3231, Time_DS3231;
+bool RTC_STATUS_FLAG = 0;
+int Hour, Minute, Second;
 
 //MPU6050 RELATED
 #include <MPU6050.h>
@@ -63,15 +62,12 @@ void setup()
   SD_CHECK();
   SI7021_CHECK();
   BMP180_CHECK();
-  rtc.begin();
+  DS3231_CHECK();
   MPU6050_CHECK();
   Serial.print("\n\n");
 
   //MISCELLANEOUS RELATED
   pinMode(13, OUTPUT);
-
-  //BMP180RELATED
-  PressBase_BMP180 = BMP180_Pressure_Temp();
 }
 
 void loop()
@@ -88,6 +84,7 @@ void loop()
   SI7021_MEASURE();
   BMP180_MEASURE();
   MPU6050_MEASURE();
+  DS3231_MEASURE();
 
   //SD RELATED
   SD_PRINT_DATA();
@@ -98,36 +95,10 @@ void loop()
 
 void SD_PRINT_DATA()
 {
-  Wire.beginTransmission(87);
-    if (0 == Wire.endTransmission())
-    {
-      Wire.beginTransmission(104);
-      if (0 == Wire.endTransmission())
-      {
-        FILE_NAME = rtc.getDateStr();
-        myfile = SD.open(FILE_NAME.substring(6, 10) + FILE_NAME.substring(3, 5) + FILE_NAME.substring(0, 2) + ".TXT", FILE_WRITE);
-      }
-    }
-    else
-    {
-     myfile = SD.open("RTC_FAIL.TXT", FILE_WRITE);
- 
-    }
-   if (myfile)
+  myfile = SD.open(FILE_NAME, FILE_WRITE);
+  if (myfile)
   {
-    Wire.beginTransmission(87);
-    if (0 == Wire.endTransmission())
-    {
-      Wire.beginTransmission(104);
-      if (0 == Wire.endTransmission())
-      {
-        myfile.print( rtc.getTimeStr());
-      }
-    }
-    else
-    {
-      myfile.print("RTC FAIL");
-    }
+    myfile.print(Time_DS3231);
     myfile.print("\t");
     myfile.print(HR_SI7021);
     myfile.print("\t");
@@ -157,19 +128,7 @@ void SD_PRINT_DATA()
 
     //PRINT SERIAL
 
-    Wire.beginTransmission(87);
-    if (0 == Wire.endTransmission())
-    {
-      Wire.beginTransmission(104);
-      if (0 == Wire.endTransmission())
-      {
-        Serial.print( rtc.getTimeStr());
-      }
-    }
-    else
-    {
-      Serial.print("RTC FAIL");
-    }
+    Serial.print(Time_DS3231);
     Serial.print("\t");
     Serial.print(HR_SI7021);
     Serial.print("\t");
@@ -232,6 +191,7 @@ void BMP180_CHECK()
   if (BMP180_sensor.begin())
   {
     Serial.write("BMP180 OK\t");
+    PressBase_BMP180 = BMP180_Pressure_Temp();
   }
   else
   {
@@ -239,13 +199,35 @@ void BMP180_CHECK()
   }
 }
 
+void DS3231_CHECK()
+{
+  rtc.begin();
+  Wire.beginTransmission(87);
+  if (0 == Wire.endTransmission())
+  {
+    Wire.beginTransmission(104);
+    if (0 == Wire.endTransmission())
+    {
+      Serial.write("DS3231 OK\t");
+    }
+    else
+    {
+      Serial.write("DS3231 ERROR\t");
+    }
+  }
+  else
+  {
+    Serial.write("DS3231 ERROR\t");
+  }
+}
+
 void MPU6050_CHECK()
 {
   if (MPU6050_sensor.begin(MPU6050_SCALE_250DPS, MPU6050_RANGE_2G, 105)) //IMPORTANT 105 REFERS TO CUSTOM ADDRESS
   {
+    Serial.write("MPU6050 OK\t");
     MPU6050_sensor.calibrateGyro();
     MPU6050_sensor.setThreshold(3);
-    Serial.write("MPU6050 OK\t");
   }
   else
   {
@@ -307,4 +289,92 @@ void MPU6050_MEASURE()
     Giro_MPU6050 = MPU6050_sensor.readNormalizeGyro();
   }
 }
+
+void DS3231_MEASURE()
+{
+  Wire.beginTransmission(87);
+  if (0 == Wire.endTransmission())
+  {
+    Wire.beginTransmission(104);
+    if (0 == Wire.endTransmission())
+    {
+      RTC_STATUS_FLAG = 0;
+      Time_DS3231 = rtc.getTimeStr();
+      Date_DS3231 = rtc.getDateStr();
+      FILE_NAME = Date_DS3231.substring(6, 10) + Date_DS3231.substring(3, 5) + Date_DS3231.substring(0, 2) + ".TXT";
+    }
+    else
+    {
+      RTC_FAIL_INFER_TIME();
+    }
+  }
+  else
+  {
+    RTC_FAIL_INFER_TIME();
+  }
+}
+
+void RTC_FAIL_INFER_TIME()
+{
+  if (RTC_STATUS_FLAG == 0)
+  {
+    Hour = Time_DS3231.substring(0, 2).toInt();
+    Minute = Time_DS3231.substring(3, 5).toInt();
+    Second = Time_DS3231.substring(6, 8).toInt();
+    RTC_STATUS_FLAG = 1;
+  }
+
+  if (Second < 59)
+  {
+    Second = Second + 1;
+  }
+  else
+  {
+    Second = 0;
+    if (Minute < 59)
+    {
+      Minute = Minute + 1;
+    }
+    else
+    {
+      Minute = 0;
+
+      if (Hour < 23)
+      {
+        Hour = Hour + 1;
+      }
+      else
+      {
+        Hour = 0;
+        myfile.print("\n\nNEW DAY!\n\n");
+      }
+    }
+  }
+  if (Hour < 10)
+  {
+    Time_DS3231 = "0" + String(Hour);
+  }
+  else
+  {
+    Time_DS3231 = String(Hour);
+  }
+  if (Minute < 10)
+  {
+    Time_DS3231 = Time_DS3231 + ":" + "0" + String(Minute);
+  }
+  else
+  {
+    Time_DS3231 = Time_DS3231 + ":" + String(Minute);
+  }
+  if (Second < 10)
+  {
+    Time_DS3231 = Time_DS3231 + ":" + "0" + String(Second) + "*";
+  }
+  else
+  {
+    Time_DS3231 = Time_DS3231 + ":" + String(Second) + "*";
+  }
+}
+
+
 

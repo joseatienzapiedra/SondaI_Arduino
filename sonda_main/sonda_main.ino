@@ -45,7 +45,7 @@ bool BMP180_STATE;
 #include <DS3231.h>
 DS3231  rtc(SDA, SCL);
 String Date_DS3231, Time_DS3231;
-bool RTC_STATUS_FLAG = 0;
+bool DS3231_STATE, RTC_STATUS_FLAG = 0;
 int Hour, Minute, Second;
 
 //MPU6050 RELATED
@@ -89,8 +89,9 @@ void loop()
   MPU6050_MEASURE();
   DS3231_MEASURE();
 
-  //SD RELATED
+  //PRINT DATA RELATED
   SD_PRINT_DATA();
+  SERIAL_PRINT_DATA();
 
   do {} while  ((millis() - T_0) < 1000); //COMPARE CURRENT TIME WITH LOOP INITIAL TIME
 }
@@ -102,6 +103,10 @@ void SD_PRINT_DATA()
   if (myfile)
   {
     myfile.print(Time_DS3231);
+    if (!DS3231_STATE)
+    {
+      myfile.print("*");
+    };
     myfile.print("\t");
     myfile.print(HR_SI7021);
     if (!SI7021_STATE)
@@ -176,89 +181,93 @@ void SD_PRINT_DATA()
     };
     myfile.println();
     myfile.close();
-
-    //PRINT SERIAL
-
-        Serial.print(Time_DS3231);
-    Serial.print("\t");
-    Serial.print(HR_SI7021);
-    if (!SI7021_STATE)
-    {
-      Serial.print("*");
-    };
-    Serial.print("\t");
-    Serial.print(Temp_SI7021);
-    if (!SI7021_STATE)
-    {
-      Serial.print("*");
-    };
-    Serial.print("\t");
-    Serial.print(Temp_BMP180);
-    if (!BMP180_STATE)
-    {
-      Serial.print("*");
-    };
-    Serial.print("\t");
-    Serial.print(PressBase_BMP180 * 100.000);
-    if (!BMP180_STATE)
-    {
-      Serial.print("*");
-    };
-    Serial.print("\t");
-    Serial.print(PressCurr_BMP180 * 100.000);
-    if (!BMP180_STATE)
-    {
-      Serial.print("*");
-    };
-    Serial.print("\t");
-    Serial.print(Alt_BMP180);
-    if (!BMP180_STATE)
-    {
-      Serial.print("*");
-    };
-    Serial.print("\t");
-    Serial.print(Acel_MPU6050.XAxis);
-    if (!MPU6050_STATE)
-    {
-      Serial.print("*");
-    };
-    Serial.print("\t");
-    Serial.print(Acel_MPU6050.YAxis);
-    if (!MPU6050_STATE)
-    {
-      Serial.print("*");
-    };
-    Serial.print("\t");
-    Serial.print(Acel_MPU6050.ZAxis);
-    if (!MPU6050_STATE)
-    {
-      Serial.print("*");
-    };
-    Serial.print("\t");
-    Serial.print(Giro_MPU6050.XAxis);
-    if (!MPU6050_STATE)
-    {
-      Serial.print("*");
-    };
-    Serial.print("\t");
-    Serial.print(Giro_MPU6050.YAxis);
-    if (!MPU6050_STATE)
-    {
-      Serial.print("*");
-    };
-    Serial.print("\t");
-    Serial.print(Giro_MPU6050.ZAxis);
-    if (!MPU6050_STATE)
-    {
-      Serial.print("*");
-    };
-    Serial.println();
-
   }
   else
   {
     Serial.println("\n*****FILE ERROR*****\n");
   }
+}
+
+void SERIAL_PRINT_DATA()
+{
+  Serial.print(Time_DS3231);
+  if (!DS3231_STATE)
+  {
+    Serial.print("*");
+  };
+  Serial.print("\t");
+  Serial.print(HR_SI7021);
+  if (!SI7021_STATE)
+  {
+    Serial.print("*");
+  };
+  Serial.print("\t");
+  Serial.print(Temp_SI7021);
+  if (!SI7021_STATE)
+  {
+    Serial.print("*");
+  };
+  Serial.print("\t");
+  Serial.print(Temp_BMP180);
+  if (!BMP180_STATE)
+  {
+    Serial.print("*");
+  };
+  Serial.print("\t");
+  Serial.print(PressBase_BMP180 * 100.000);
+  if (!BMP180_STATE)
+  {
+    Serial.print("*");
+  };
+  Serial.print("\t");
+  Serial.print(PressCurr_BMP180 * 100.000);
+  if (!BMP180_STATE)
+  {
+    Serial.print("*");
+  };
+  Serial.print("\t");
+  Serial.print(Alt_BMP180);
+  if (!BMP180_STATE)
+  {
+    Serial.print("*");
+  };
+  Serial.print("\t");
+  Serial.print(Acel_MPU6050.XAxis);
+  if (!MPU6050_STATE)
+  {
+    Serial.print("*");
+  };
+  Serial.print("\t");
+  Serial.print(Acel_MPU6050.YAxis);
+  if (!MPU6050_STATE)
+  {
+    Serial.print("*");
+  };
+  Serial.print("\t");
+  Serial.print(Acel_MPU6050.ZAxis);
+  if (!MPU6050_STATE)
+  {
+    Serial.print("*");
+  };
+  Serial.print("\t");
+  Serial.print(Giro_MPU6050.XAxis);
+  if (!MPU6050_STATE)
+  {
+    Serial.print("*");
+  };
+  Serial.print("\t");
+  Serial.print(Giro_MPU6050.YAxis);
+  if (!MPU6050_STATE)
+  {
+    Serial.print("*");
+  };
+  Serial.print("\t");
+  Serial.print(Giro_MPU6050.ZAxis);
+  if (!MPU6050_STATE)
+  {
+    Serial.print("*");
+  };
+  Serial.println();
 }
 
 void SD_CHECK()
@@ -416,15 +425,18 @@ void DS3231_MEASURE()
       Time_DS3231 = rtc.getTimeStr();
       Date_DS3231 = rtc.getDateStr();
       FILE_NAME = Date_DS3231.substring(6, 10) + Date_DS3231.substring(3, 5) + Date_DS3231.substring(0, 2) + ".TXT";
+      DS3231_STATE = 1;
     }
     else
     {
       RTC_FAIL_INFER_TIME();
+      DS3231_STATE = 0;
     }
   }
   else
   {
     RTC_FAIL_INFER_TIME();
+    DS3231_STATE = 0;
   }
 }
 
@@ -483,11 +495,11 @@ void RTC_FAIL_INFER_TIME()
   }
   if (Second < 10)
   {
-    Time_DS3231 = Time_DS3231 + ":" + "0" + String(Second) + "*";
+    Time_DS3231 = Time_DS3231 + ":" + "0" + String(Second);
   }
   else
   {
-    Time_DS3231 = Time_DS3231 + ":" + String(Second) + "*";
+    Time_DS3231 = Time_DS3231 + ":" + String(Second);
   }
 }
 

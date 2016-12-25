@@ -97,89 +97,93 @@ void loop()
 }
 //_______________________________________________________________________________________________________________________________________________________________________________
 
+void common_print_data(Stream &out)
+{
+    out.print(Time_DS3231);
+    if (!DS3231_STATE)
+    {
+      out.print("*");
+    };
+    out.print("\t");
+    out.print(HR_SI7021);
+    if (!SI7021_STATE)
+    {
+      out.print("*");
+    };
+    out.print("\t");
+    out.print(Temp_SI7021);
+    if (!SI7021_STATE)
+    {
+      out.print("*");
+    };
+    out.print("\t");
+    out.print(Temp_BMP180);
+    if (!BMP180_STATE)
+    {
+      out.print("*");
+    };
+    out.print("\t");
+    out.print(PressBase_BMP180 * 100.00f);
+    if (!BMP180_STATE)
+    {
+      out.print("*");
+    };
+    out.print("\t");
+    out.print(PressCurr_BMP180 * 100.00f);
+    if (!BMP180_STATE)
+    {
+      out.print("*");
+    };
+    out.print("\t");
+    out.print(Alt_BMP180);
+    if (!BMP180_STATE)
+    {
+      out.print("*");
+    };
+    out.print("\t");
+    out.print(Acel_MPU6050.XAxis);
+    if (!MPU6050_STATE)
+    {
+      out.print("*");
+    };
+    out.print("\t");
+    out.print(Acel_MPU6050.YAxis);
+    if (!MPU6050_STATE)
+    {
+      out.print("*");
+    };
+    out.print("\t");
+    out.print(Acel_MPU6050.ZAxis);
+    if (!MPU6050_STATE)
+    {
+      out.print("*");
+    };
+    out.print("\t");
+    out.print(Giro_MPU6050.XAxis);
+    if (!MPU6050_STATE)
+    {
+      out.print("*");
+    };
+    out.print("\t");
+    out.print(Giro_MPU6050.YAxis);
+    if (!MPU6050_STATE)
+    {
+      out.print("*");
+    };
+    out.print("\t");
+    out.print(Giro_MPU6050.ZAxis);
+    if (!MPU6050_STATE)
+    {
+      out.print("*");
+    };
+    out.println();
+}
+
 void SD_PRINT_DATA()
 {
   myfile = SD.open(FILE_NAME, FILE_WRITE);
-  if (myfile)
-  {
-    myfile.print(Time_DS3231);
-    if (!DS3231_STATE)
-    {
-      myfile.print("*");
-    };
-    myfile.print("\t");
-    myfile.print(HR_SI7021);
-    if (!SI7021_STATE)
-    {
-      myfile.print("*");
-    };
-    myfile.print("\t");
-    myfile.print(Temp_SI7021);
-    if (!SI7021_STATE)
-    {
-      myfile.print("*");
-    };
-    myfile.print("\t");
-    myfile.print(Temp_BMP180);
-    if (!BMP180_STATE)
-    {
-      myfile.print("*");
-    };
-    myfile.print("\t");
-    myfile.print(PressBase_BMP180 * 100.00f);
-    if (!BMP180_STATE)
-    {
-      myfile.print("*");
-    };
-    myfile.print("\t");
-    myfile.print(PressCurr_BMP180 * 100.00f);
-    if (!BMP180_STATE)
-    {
-      myfile.print("*");
-    };
-    myfile.print("\t");
-    myfile.print(Alt_BMP180);
-    if (!BMP180_STATE)
-    {
-      myfile.print("*");
-    };
-    myfile.print("\t");
-    myfile.print(Acel_MPU6050.XAxis);
-    if (!MPU6050_STATE)
-    {
-      myfile.print("*");
-    };
-    myfile.print("\t");
-    myfile.print(Acel_MPU6050.YAxis);
-    if (!MPU6050_STATE)
-    {
-      myfile.print("*");
-    };
-    myfile.print("\t");
-    myfile.print(Acel_MPU6050.ZAxis);
-    if (!MPU6050_STATE)
-    {
-      myfile.print("*");
-    };
-    myfile.print("\t");
-    myfile.print(Giro_MPU6050.XAxis);
-    if (!MPU6050_STATE)
-    {
-      myfile.print("*");
-    };
-    myfile.print("\t");
-    myfile.print(Giro_MPU6050.YAxis);
-    if (!MPU6050_STATE)
-    {
-      myfile.print("*");
-    };
-    myfile.print("\t");
-    myfile.print(Giro_MPU6050.ZAxis);
-    if (!MPU6050_STATE)
-    {
-      myfile.print("*");
-    };
-    myfile.println();
+  if (myfile) {
+    common_print_data(out);
     myfile.close();
   }
   else
@@ -190,84 +194,7 @@ void SD_PRINT_DATA()
 
 void SERIAL_PRINT_DATA()
 {
-  Serial.print(Time_DS3231);
-  if (!DS3231_STATE)
-  {
-    Serial.print("*");
-  };
-  Serial.print("\t");
-  Serial.print(HR_SI7021);
-  if (!SI7021_STATE)
-  {
-    Serial.print("*");
-  };
-  Serial.print("\t");
-  Serial.print(Temp_SI7021);
-  if (!SI7021_STATE)
-  {
-    Serial.print("*");
-  };
-  Serial.print("\t");
-  Serial.print(Temp_BMP180);
-  if (!BMP180_STATE)
-  {
-    Serial.print("*");
-  };
-  Serial.print("\t");
-  Serial.print(PressBase_BMP180 * 100.000);
-  if (!BMP180_STATE)
-  {
-    Serial.print("*");
-  };
-  Serial.print("\t");
-  Serial.print(PressCurr_BMP180 * 100.000);
-  if (!BMP180_STATE)
-  {
-    Serial.print("*");
-  };
-  Serial.print("\t");
-  Serial.print(Alt_BMP180);
-  if (!BMP180_STATE)
-  {
-    Serial.print("*");
-  };
-  Serial.print("\t");
-  Serial.print(Acel_MPU6050.XAxis);
-  if (!MPU6050_STATE)
-  {
-    Serial.print("*");
-  };
-  Serial.print("\t");
-  Serial.print(Acel_MPU6050.YAxis);
-  if (!MPU6050_STATE)
-  {
-    Serial.print("*");
-  };
-  Serial.print("\t");
-  Serial.print(Acel_MPU6050.ZAxis);
-  if (!MPU6050_STATE)
-  {
-    Serial.print("*");
-  };
-  Serial.print("\t");
-  Serial.print(Giro_MPU6050.XAxis);
-  if (!MPU6050_STATE)
-  {
-    Serial.print("*");
-  };
-  Serial.print("\t");
-  Serial.print(Giro_MPU6050.YAxis);
-  if (!MPU6050_STATE)
-  {
-    Serial.print("*");
-  };
-  Serial.print("\t");
-  Serial.print(Giro_MPU6050.ZAxis);
-  if (!MPU6050_STATE)
-  {
-    Serial.print("*");
-  };
-  Serial.println();
+   common_print_data(Serial);
 }
 
 void SD_CHECK()

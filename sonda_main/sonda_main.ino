@@ -97,93 +97,13 @@ void loop()
 }
 //_______________________________________________________________________________________________________________________________________________________________________________
 
-void common_print_data(Stream &out)
-{
-    out.print(Time_DS3231);
-    if (!DS3231_STATE)
-    {
-      out.print("*");
-    };
-    out.print("\t");
-    out.print(HR_SI7021);
-    if (!SI7021_STATE)
-    {
-      out.print("*");
-    };
-    out.print("\t");
-    out.print(Temp_SI7021);
-    if (!SI7021_STATE)
-    {
-      out.print("*");
-    };
-    out.print("\t");
-    out.print(Temp_BMP180);
-    if (!BMP180_STATE)
-    {
-      out.print("*");
-    };
-    out.print("\t");
-    out.print(PressBase_BMP180 * 100.00f);
-    if (!BMP180_STATE)
-    {
-      out.print("*");
-    };
-    out.print("\t");
-    out.print(PressCurr_BMP180 * 100.00f);
-    if (!BMP180_STATE)
-    {
-      out.print("*");
-    };
-    out.print("\t");
-    out.print(Alt_BMP180);
-    if (!BMP180_STATE)
-    {
-      out.print("*");
-    };
-    out.print("\t");
-    out.print(Acel_MPU6050.XAxis);
-    if (!MPU6050_STATE)
-    {
-      out.print("*");
-    };
-    out.print("\t");
-    out.print(Acel_MPU6050.YAxis);
-    if (!MPU6050_STATE)
-    {
-      out.print("*");
-    };
-    out.print("\t");
-    out.print(Acel_MPU6050.ZAxis);
-    if (!MPU6050_STATE)
-    {
-      out.print("*");
-    };
-    out.print("\t");
-    out.print(Giro_MPU6050.XAxis);
-    if (!MPU6050_STATE)
-    {
-      out.print("*");
-    };
-    out.print("\t");
-    out.print(Giro_MPU6050.YAxis);
-    if (!MPU6050_STATE)
-    {
-      out.print("*");
-    };
-    out.print("\t");
-    out.print(Giro_MPU6050.ZAxis);
-    if (!MPU6050_STATE)
-    {
-      out.print("*");
-    };
-    out.println();
-}
 
 void SD_PRINT_DATA()
 {
   myfile = SD.open(FILE_NAME, FILE_WRITE);
-  if (myfile) {
-    common_print_data(myfile);
+  if (myfile)
+  {
+    COMMON_PRINT_DATA(myfile);
     myfile.close();
   }
   else
@@ -194,7 +114,54 @@ void SD_PRINT_DATA()
 
 void SERIAL_PRINT_DATA()
 {
-   common_print_data(Serial);
+  COMMON_PRINT_DATA(Serial);
+}
+
+void COMMON_PRINT_DATA(Stream &out)
+{
+  out.print(Time_DS3231);
+  out.print("\t");
+  out.print(HR_SI7021);
+  out.print("\t");
+  out.print(Temp_SI7021);
+  out.print("\t");
+  out.print(Temp_BMP180);
+  out.print("\t");
+  out.print(PressBase_BMP180 * 100.00f);
+  out.print("\t");
+  out.print(PressCurr_BMP180 * 100.00f);
+  out.print("\t");
+  out.print(Alt_BMP180);
+  out.print("\t");
+  out.print(Acel_MPU6050.XAxis);
+  out.print("\t");
+  out.print(Acel_MPU6050.YAxis);
+  out.print("\t");
+  out.print(Acel_MPU6050.ZAxis);
+  out.print("\t");
+  out.print(Giro_MPU6050.XAxis);
+  out.print("\t");
+  out.print(Giro_MPU6050.YAxis);
+  out.print("\t");
+  out.print(Giro_MPU6050.ZAxis);
+  out.print("\t");
+  if (!SI7021_STATE)
+  {
+    out.print("SI7021 NOT WORKING\t");
+  };
+  if (!BMP180_STATE)
+  {
+    out.print("BMP180 NOT WORKING\t");
+  };
+  if (!DS3231_STATE)
+  {
+    out.print("DS3231 NOT WORKING\t");
+  };
+  if (!MPU6050_STATE)
+  {
+    out.print("MPU6050 NOT WORKING\t");
+
+  out.println();
 }
 
 void SD_CHECK()

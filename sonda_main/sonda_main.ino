@@ -145,6 +145,7 @@ void COMMON_PRINT_DATA(Stream &out)
   out.print("\t");
   out.print(Giro_MPU6050.ZAxis);
   out.print("\t");
+/*
   if (!SI7021_STATE)
   {
     out.print("SI7021 NOT WORKING\t");
@@ -160,6 +161,7 @@ void COMMON_PRINT_DATA(Stream &out)
   if (!MPU6050_STATE)
   {
     out.print("MPU6050 NOT WORKING\t");
+  };*/
 
   out.println();
 }

@@ -183,7 +183,7 @@ void SD_PRINT_DATA()
 {
   myfile = SD.open(FILE_NAME, FILE_WRITE);
   if (myfile) {
-    common_print_data(out);
+    common_print_data(myfile);
     myfile.close();
   }
   else
